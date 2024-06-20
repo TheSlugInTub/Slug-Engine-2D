@@ -14,6 +14,7 @@
 #include <Renderer.h>
 #include <vector>
 #include <Prefs.h>
+#include <ParticleSystem.h>
 #include <Box2D/box2d/box2d.h>
 #include <Rope.h>
 

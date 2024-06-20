@@ -43,8 +43,7 @@ public:
     }
 
     void resolveCollisionWithObject(Object& object) {
-        if (object.body != NULL)
-        {
+        if (object.body != NULL) {
             for (int iter = 0; iter < 5; ++iter) { // Multiple iterations for better stability
                 for (auto& point : points) {
                     b2Vec2 b2Point(point.x, point.y);
@@ -53,16 +52,20 @@ public:
                         if (fixture->TestPoint(b2Point)) {
                             b2Vec2 normal = b2Point - object.body->GetWorldCenter();
                             normal.Normalize();
-                            b2Vec2 correction = normal; // Move the point outside the body
+
+                            // Correction to resolve the collision
+                            b2Vec2 correction = normal;
                             correction *= pointDistance * 0.1f; // Apply a smaller correction
-                            point += glm::vec2(correction.x, correction.y);
+
+                            glm::vec2 glmCorrection(correction.x, correction.y);
+                            point += glmCorrection;
+
+                            // Re-constrain points to maintain the rope's integrity
+                            for (size_t i = 1; i < points.size(); ++i) {
+                                constrainPoint(i);
+                            }
                         }
                     }
-                }
-
-                // Apply constraints again after collision resolution
-                for (size_t i = 1; i < points.size(); ++i) {
-                    constrainPoint(i);
                 }
             }
         }

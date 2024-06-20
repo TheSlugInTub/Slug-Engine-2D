@@ -24,7 +24,7 @@ Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
 int main()
 {
-    GLFWwindow* window = initializeWindow("Slug2D", SCR_WIDTH, SCR_HEIGHT, false);
+    GLFWwindow* window = initializeWindow("Slug2D", SCR_WIDTH, SCR_HEIGHT, true);
     setWindowIcon(window, "Resources/ball.png");
 
     Shader ourShader("Shaders/vertex2d.shad", "Shaders/fragment2d.shad");
@@ -38,6 +38,7 @@ int main()
     unsigned int texture = loadTexture("Resources/Slugarius.png");
     unsigned int transparentTexture = loadTexture("Resources/transparent.png");
     unsigned int skyboxTexture = loadTexture("Resources/background.png");
+    unsigned int smokeTexture = loadTexture("Resources/smoke.png");
 
     b2World world(b2Vec2(0.0f, -0.5f));
 
@@ -58,9 +59,9 @@ int main()
     bodies.push_back(body2);
     bodies.push_back(body3);
 
-    RopeSimulation rope(20, glm::vec2(1.2f, 2.99f), 0.1f, 0.1f);
+    ParticleSystem smokeParticles(glm::vec2(0.2f, 0.5f), 0.0f, 0.1f, smokeTexture, glm::vec2(2.2f, 2.2f), 0.01f, -0.01f, -0.1f, -5.0f, 0.1f, 0.8f, false, 1000.0f, 100.0f, false, 0.5f);
+    ParticleSystem smokeParticles2(glm::vec2(0.2f, 0.5f), 0.0f, 0.1f, smokeTexture, glm::vec2(0.1f, 0.02f), 0.1f, -0.01f, 0.2f, -0.1f, 2.0f, 1.5f, false, 1000.0f, 10.0f, false, 0.5f);
 
-    //imgui
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     ImFont* mainfont = io.Fonts->AddFontFromFileTTF("Resources/static/newfont.ttf", 18.5f);
@@ -80,12 +81,12 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        rope.simulate(deltaTime);
+        smokeParticles.Update(deltaTime);
+        smokeParticles2.Update(deltaTime);
 
         processInput(window);
 
         ClearScreen();
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -102,7 +103,6 @@ int main()
         skybox.position.x = camera.Position.x;
         skybox.position.y = camera.Position.y;
 
-
         if (DrawBackdrop)
         {
             ourRenderer.Render(ourShader, skybox, view, projection);
@@ -112,6 +112,8 @@ int main()
         ourRenderer.Render(ourShader, bodyOne, view, projection);
         ourRenderer.Render(ourShader, bodyTwo, view, projection);
         ourRenderer.Render(ourShader, bodyThree, view, projection);
+        ourRenderer.RenderParticles(ourShader, smokeParticles, view, projection);
+        ourRenderer.RenderParticles(ourShader, smokeParticles2, view, projection);
 
         if (GetKey(window, GLFW_KEY_LEFT))
         {
@@ -143,32 +145,20 @@ int main()
             b2Vec2 impulse(0.0f, 0.2f);
             bodyOne.body->ApplyLinearImpulse(impulse, bodyOne.body->GetWorldCenter(), true);
         }
+        if (GetKey(window, GLFW_KEY_R))
+        {
+            smokeParticles.Play();
+        }
+        if (GetKey(window, GLFW_KEY_T))
+        {
+            smokeParticles2.Play();
+        }
 
         for (b2Body* body : bodies)
         {
             std::vector<glm::vec2> vertices = GetBoxVertices(body);
             DrawLines(vertices, lineShader, camera, SCR_WIDTH, SCR_HEIGHT);
         }
-
-        if (GetKey(window, GLFW_KEY_L))
-        {
-            rope.setBasePosition(glm::vec2(rope.basePosition.x += 0.01f, rope.basePosition.y));
-        }if (GetKey(window, GLFW_KEY_J))
-        {
-            rope.setBasePosition(glm::vec2(rope.basePosition.x -= 0.01f, rope.basePosition.y));
-        }if (GetKey(window, GLFW_KEY_I))
-        {
-            rope.setBasePosition(glm::vec2(rope.basePosition.x, rope.basePosition.y += 0.01f));
-        }if (GetKey(window, GLFW_KEY_K))
-        {
-            rope.setBasePosition(glm::vec2(rope.basePosition.x, rope.basePosition.y -= 0.01f));
-        }
-
-        DrawOnlyLines(rope.points, lineShader, camera, SCR_WIDTH, SCR_HEIGHT);
-
-        rope.resolveCollisionWithObject(bodyOne);
-        rope.resolveCollisionWithObject(bodyTwo);
-        rope.resolveCollisionWithObject(bodyThree);
 
         ImGui::PushFont(mainfont);
         ImGui::Begin("Slug's Window");

@@ -96,3 +96,40 @@ void Renderer::Render(Shader& shader, Object& object, const glm::mat4& view, con
 
     glBindVertexArray(0);
 }
+
+void Renderer::RenderParticles(Shader& shader, ParticleSystem& particleSystem, const glm::mat4& view, const glm::mat4& projection)
+{
+    shader.use();
+    shader.setTexture2D("texture1", particleSystem.Texture, 0);
+
+    for (const auto& particle : particleSystem.particles)
+    {
+        // Calculate transform for each particle
+        glm::mat4 transform = glm::mat4(1.0f);
+        transform = glm::translate(transform, glm::vec3(particle.pos, 0.0f));
+        transform = glm::rotate(transform, particle.rotation, glm::vec3(0.0f, 0.0f, 1.0f));
+        transform = glm::scale(transform, glm::vec3(particle.size, particle.size, 1.0f)); // Assuming size is uniform for x and y
+
+        shader.setMat4("transform", transform);
+        shader.setMat4("view", view);
+        shader.setMat4("projection", projection);
+        shader.setVec4("ourColor", glm::vec4(1.0f, 1.0f, 1.0f, particle.alpha)); // Assuming particles have uniform color, modify if needed
+        shader.setBool("isWhite", false); // Modify if needed
+
+        float vertices[] = {
+            // positions     // texture coords
+            0.5f,  0.5f, 0.0f, 1.0f, 1.0f,   // top right
+            0.5f, -0.5f, 0.0f, 1.0f, 0.0f,   // bottom right
+           -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,   // bottom left
+           -0.5f,  0.5f, 0.0f, 0.0f, 1.0f    // top left
+        };
+
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+        glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        glBindVertexArray(0);
+    }
+}

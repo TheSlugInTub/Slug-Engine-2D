@@ -126,6 +126,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -142,6 +143,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -166,6 +168,7 @@
     <ClCompile Include="Pixelator.cpp" />
     <ClCompile Include="Animation.cpp" />
     <ClCompile Include="Prefs.cpp" />
+    <ClCompile Include="ParticleSystem.cpp" />
     <ClCompile Include="SlugEngine.cpp" />
     <ClCompile Include="SoundBuffer.cpp" />
     <ClCompile Include="SoundDevice.cpp" />
@@ -204,6 +207,7 @@
     <ClInclude Include="Libraries\include\imgui\imstb_truetype.h" />
     <ClInclude Include="Libraries\include\mesh.h" />
     <ClInclude Include="Libraries\include\Object.h" />
+    <ClInclude Include="Libraries\include\ParticleSystem.h" />
     <ClInclude Include="Libraries\include\Pixelator.h" />
     <ClInclude Include="Libraries\include\Prefs.h" />
     <ClInclude Include="Libraries\include\Renderer.h" />
