@@ -84,6 +84,9 @@
     <ClCompile Include="ParticleSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Canvas.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\fragment.shad">
@@ -117,6 +120,10 @@
     <None Include="Shaders\linefragment.shad" />
     <None Include="Shaders\screenvertex.shad" />
     <None Include="Shaders\screenfragment.shad" />
+    <None Include="Shaders\textfragment.shad" />
+    <None Include="Shaders\textvertex.shad" />
+    <None Include="Shaders\depthvertex.shad" />
+    <None Include="Shaders\depthfragment.shad" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Libraries\include\mesh.h">
@@ -198,6 +205,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Libraries\include\ParticleSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Libraries\include\Canvas.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

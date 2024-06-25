@@ -3,7 +3,7 @@
 #include <glad/glad.h>
 #include <iostream>
 
-Object::Object(b2Body* rigidbody, unsigned int objectTexture, glm::vec2 objectScale, glm::vec3 objectPosition, float angle, glm::vec4 objectColor)
+Object::Object(b2Body* rigidbody, unsigned int objectTexture, glm::vec2 objectScale, glm::vec3 objectPosition, float angle, glm::vec4 objectColor, bool ReceivesLight)
 {
 	body = rigidbody;
 	texture = objectTexture;
@@ -12,6 +12,7 @@ Object::Object(b2Body* rigidbody, unsigned int objectTexture, glm::vec2 objectSc
     position = objectPosition;
     rotation = angle;
     color = objectColor;
+    receivesLight = ReceivesLight;
 }
 
 Object::Object()

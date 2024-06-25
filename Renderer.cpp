@@ -1,5 +1,4 @@
 #include <Renderer.h>
-#include <Shader.h>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -41,6 +40,28 @@ Renderer::Renderer()
     // color attribute
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    globalLight = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+}
+
+void Renderer::AddLight(const Light& light)
+{
+    lights.push_back(light);
+}
+
+void Renderer::EditLight(int index, const Light& light)
+{
+    lights[index] = light;
+}
+
+void Renderer::SetGlobalLight(const glm::vec4& color)
+{
+    globalLight = color;
+}
+
+void Renderer::AddShadowCaster(Object& object)
+{
+    shadowCasters.push_back(&object);
 }
 
 void Renderer::Render(Shader& shader, Object& object, const glm::mat4& view, const glm::mat4& projection)
@@ -77,8 +98,38 @@ void Renderer::Render(Shader& shader, Object& object, const glm::mat4& view, con
     shader.setMat4("transform", transform);
     shader.setMat4("view", view);
     shader.setMat4("projection", projection);
+
+    // Set the object color
     shader.setVec4("ourColor", object.color);
-    shader.setBool("isWhite", object.isWhite ? true : false);
+    shader.setBool("isWhite", object.isWhite);
+    shader.setVec4("globalLightColor", globalLight);
+    shader.setBool("receivesLight", object.receivesLight);
+
+    // Set the lights data
+    shader.setInt("numLights", lights.size());
+    for (int i = 0; i < lights.size(); ++i)
+    {
+        std::string baseName = "lights[" + std::to_string(i) + "]";
+        shader.setVec3(baseName + ".position", lights[i].position);
+        shader.setFloat(baseName + ".innerRadius", lights[i].innerRadius);
+        shader.setFloat(baseName + ".outerRadius", lights[i].outerRadius);
+        shader.setVec4(baseName + ".color", lights[i].color);
+        shader.setFloat(baseName + ".intensity", lights[i].intensity);
+        shader.setBool(baseName + ".castsShadows", lights[i].castsShadows);
+    }
+
+    shader.setInt("numShadowCasters", shadowCasters.size());
+    for (unsigned int i = 0; i < shadowCasters.size(); i++)
+    {
+        b2Vec2 shadowPos = shadowCasters[i]->body->GetPosition();
+        glm::vec2 size = shadowCasters[i]->scale;
+        float bodyAngle = shadowCasters[i]->body->GetAngle();
+        shader.setVec3("shadowCasters[" + std::to_string(i) + "].position", glm::vec3(shadowPos.x, shadowPos.y, 0.0f));
+        shader.setVec2("shadowCasters[" + std::to_string(i) + "].size", size);
+        shader.setFloat("shadowCasters[" + std::to_string(i) + "].angle", bodyAngle);
+        shader.setBool("shadowCasters[" + std::to_string(i) + "].isFlipped", shadowCasters[i]->isFlipped);
+        shader.setTexture2D("shadowCasterTextures[" + std::to_string(i) + "]", shadowCasters[i]->texture, i + 1);
+    }
 
     float vertices[] = {
         // positions     // texture coords

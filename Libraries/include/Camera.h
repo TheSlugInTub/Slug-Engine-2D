@@ -24,6 +24,7 @@ public:
     void ProcessKeyboard(CameraMovement direction, float deltaTime);
     void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true);
     void ProcessMouseScroll(float yoffset);
+    void PrintValues();
 
     glm::mat4 GetViewMatrix();
     float GetZoom();

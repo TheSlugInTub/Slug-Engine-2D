@@ -131,7 +131,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;OpenAL32.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>freetype.lib;glfw3.lib;opengl32.lib;OpenAL32.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -150,7 +150,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;OpenAL32.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>freetype.lib;glfw3.lib;opengl32.lib;OpenAL32.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -169,6 +169,7 @@
     <ClCompile Include="Animation.cpp" />
     <ClCompile Include="Prefs.cpp" />
     <ClCompile Include="ParticleSystem.cpp" />
+    <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="SlugEngine.cpp" />
     <ClCompile Include="SoundBuffer.cpp" />
     <ClCompile Include="SoundDevice.cpp" />
@@ -178,6 +179,8 @@
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\depthfragment.shad" />
+    <None Include="Shaders\depthvertex.shad" />
     <None Include="Shaders\fragment.shad" />
     <None Include="Shaders\fragment2d.shad" />
     <None Include="Shaders\linefragment.shad" />
@@ -189,6 +192,8 @@
     <None Include="Shaders\shadowvertex.shad" />
     <None Include="Shaders\skyboxfragment.shad" />
     <None Include="Shaders\skyboxvertex.shad" />
+    <None Include="Shaders\textfragment.shad" />
+    <None Include="Shaders\textvertex.shad" />
     <None Include="Shaders\vertex.shad" />
     <None Include="Shaders\vertex2d.shad" />
   </ItemGroup>
@@ -197,6 +202,7 @@
     <ClInclude Include="Libraries\include\AudioFile.h" />
     <ClInclude Include="Libraries\include\Camera.h" />
     <ClInclude Include="Libraries\include\CameraClass.h" />
+    <ClInclude Include="Libraries\include\Canvas.h" />
     <ClInclude Include="Libraries\include\imgui\imconfig.h" />
     <ClInclude Include="Libraries\include\imgui\imgui.h" />
     <ClInclude Include="Libraries\include\imgui\imgui_impl_glfw.h" />

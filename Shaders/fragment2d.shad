@@ -2,28 +2,157 @@
 out vec4 FragColor;
 
 in vec2 TexCoord;
+in vec3 FragPos;
 
-// texture sampler
 uniform sampler2D texture1;
-
-// color variable
 uniform vec4 ourColor;
+
+struct Light {
+    vec3 position;
+    float innerRadius;
+    float outerRadius;
+    vec4 color;
+    float intensity;
+    bool castsShadows;  
+};
+
+#define MAX_LIGHTS 10
+uniform int numLights;
+uniform Light lights[MAX_LIGHTS];
+
+// Global light
+uniform vec4 globalLightColor;
+
+// Shadow casting structures
+struct ShadowCaster {
+    vec3 position;
+    vec2 size;
+    float angle; // Added angle variable
+    bool isFlipped; // Added isFlipped variable
+};
+
+#define MAX_SHADOW_CASTERS 10
+uniform int numShadowCasters;
+uniform ShadowCaster shadowCasters[MAX_SHADOW_CASTERS];
+uniform sampler2D shadowCasterTextures[MAX_SHADOW_CASTERS];
+
+uniform bool receivesLight;
 uniform bool isWhite;
 
-void main()
-{
-    // Sample the texture
-    vec4 texColor = texture(texture1, TexCoord);
+bool pointInTriangle(vec2 pt, vec2 v1, vec2 v2, vec2 v3) {
+    // Barycentric coordinates method
+    vec2 v2v1 = v2 - v1;
+    vec2 v3v1 = v3 - v1;
+    vec2 ptv1 = pt - v1;
 
-    // Check if isWhite is true
+    float dot00 = dot(v3v1, v3v1);
+    float dot01 = dot(v3v1, v2v1);
+    float dot02 = dot(v3v1, ptv1);
+    float dot11 = dot(v2v1, v2v1);
+    float dot12 = dot(v2v1, ptv1);
+
+    float invDenom = 1.0 / (dot00 * dot11 - dot01 * dot01);
+    float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+    float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+    return (u >= 0) && (v >= 0) && (u + v < 1);
+}
+
+float coneShadow(vec3 fragPos, vec3 lightPos, vec3 casterPos, vec2 casterSize, float casterAngle, bool isFlipped, float lightOuterRadius) {
+    vec2 p = fragPos.xy;
+    vec2 l = lightPos.xy;
+
+    // Compute the four vertices of the caster's sprite
+    vec2 halfSize = casterSize * 0.5;
+    vec2 offset[4] = {
+        vec2(-halfSize.x, -halfSize.y),
+        vec2(halfSize.x, -halfSize.y),
+        vec2(halfSize.x, halfSize.y),
+        vec2(-halfSize.x, halfSize.y)
+    };
+
+    float cosAngle = cos(casterAngle);
+    float sinAngle = sin(casterAngle);
+
+    for (int i = 0; i < 4; ++i) {
+        vec2 rotatedOffset = vec2(
+            cosAngle * offset[i].x - sinAngle * offset[i].y,
+            sinAngle * offset[i].x + cosAngle * offset[i].y
+        );
+        offset[i] = casterPos.xy + rotatedOffset;
+    }
+
+    // Check if the fragment is in any of the shadow triangles
+    bool inShadow = false;
+    for (int i = 0; i < 4; ++i) {
+        vec2 v1 = offset[i];
+        vec2 v2 = offset[(i + 1) % 4];
+
+        // Create the shadow cone triangles
+        vec2 shadowDir1 = normalize(v1 - l);
+        vec2 shadowDir2 = normalize(v2 - l);
+        vec2 shadowEnd1 = v1 + shadowDir1 * lightOuterRadius;
+        vec2 shadowEnd2 = v2 + shadowDir2 * lightOuterRadius;
+
+        if (pointInTriangle(p, v1, shadowEnd1, shadowEnd2) || pointInTriangle(p, v1, v2, shadowEnd2)) {
+            inShadow = true;
+            break;
+        }
+    }
+
+    // Apply smoothstep for distance attenuation
+    float distance = length(fragPos.xy - lightPos.xy);
+    float shadowFactor = inShadow ? 0.0 : 1.0;
+    shadowFactor *= 1.0 - smoothstep(0.0, lightOuterRadius, distance);
+
+    return shadowFactor;
+}
+
+void main() {
+    vec4 texColor = texture(texture1, TexCoord);
+    vec4 finalColor = texColor * ourColor;
+    vec3 totalLight = vec3(0.0);
+
+    for (int i = 0; i < numLights; i++) {
+        Light light = lights[i];
+        float distance = length(light.position - FragPos);
+
+        if (distance < light.outerRadius) {
+            float intensity = light.intensity;
+            if (distance > light.innerRadius) {
+                intensity *= 1.0 - (distance - light.innerRadius) / (light.outerRadius - light.innerRadius);
+            }
+            
+            // Calculate shadow
+            float shadowFactor = 1.0;
+            if (light.castsShadows) {
+                for (int j = 0; j < numShadowCasters; j++) {
+                    ShadowCaster caster = shadowCasters[j];
+                    shadowFactor *= coneShadow(FragPos, light.position, caster.position, caster.size, caster.angle, caster.isFlipped, light.outerRadius);
+                }
+            }
+
+            totalLight += light.color.rgb * intensity * shadowFactor;
+        }
+    }
+
     if (isWhite)
     {
-        // Set the color to white
-        FragColor = vec4(1.0, 1.0, 1.0, texColor.a);
+        finalColor = vec4(1.0f, 1.0f, 1.0f, texColor.a);
     }
-    else
+
+    if (receivesLight)
     {
-        // Multiply the texture color by the uniform color
-        FragColor = texColor * ourColor;
+        // Apply global light color
+        totalLight += globalLightColor.rgb;
+
+        // Combine finalColor with total light contribution
+        finalColor.rgb *= totalLight;
     }
+
+    // Clamp final color
+    finalColor.rgb = clamp(finalColor.rgb, 0.0, 1.0);
+
+    // Output the final color
+    FragColor = finalColor;
 }

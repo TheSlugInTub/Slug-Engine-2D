@@ -1,4 +1,5 @@
 #include "Camera.h"
+#include <iostream>
 
 Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
     : Front(glm::vec3(0.0f, 0.0f, -1.0f)),
@@ -52,6 +53,14 @@ void Camera::ProcessMouseScroll(float yoffset) {
         Zoom = 1.0f;
     if (Zoom >= 45.0f)
         Zoom = 45.0f;
+}
+
+void Camera::PrintValues()
+{
+    std::cout << Position.x << ", " << Position.y << ", " << Position.z << '\n';
+    glm::vec3 newPosition = Position + Front;
+    std::cout << newPosition.x << ", " << newPosition.y << ", " << newPosition.z << '\n';
+    std::cout << Up.x << ", " << Up.y << ", " << Up.z << '\n';
 }
 
 glm::mat4 Camera::GetViewMatrix() {

@@ -17,6 +17,10 @@
 #include <ParticleSystem.h>
 #include <Box2D/box2d/box2d.h>
 #include <Rope.h>
+#include <Canvas.h>
+
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 bool GetKeyDown(GLFWwindow* window, int key);
 

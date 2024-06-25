@@ -171,6 +171,16 @@ public:
         glUniform1i(glGetUniformLocation(ID, name.c_str()), textureUnit); // Set the sampler to use the texture unit
     }
 
+    void printUniform(const std::string& name) const {
+        int location = glGetUniformLocation(ID, name.c_str());
+        if (location == -1) {
+            std::cout << "Uniform " << name << " not found!" << std::endl;
+        }
+        else {
+            std::cout << "Uniform " << name << " is at location " << location << std::endl;
+        }
+    }
+
 private:
     // utility function for checking shader compilation/linking errors.
     // ------------------------------------------------------------------------

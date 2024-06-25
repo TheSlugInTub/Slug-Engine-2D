@@ -1,0 +1,5 @@
+#version 330 core
+void main()
+{
+    // No need to output color, depth value is automatically written to depth buffer
+}

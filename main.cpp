@@ -5,8 +5,8 @@
 void processInput(GLFWwindow* window);
 
 // settings
-const unsigned int SCR_WIDTH = 1920;
-const unsigned int SCR_HEIGHT = 1080;
+const unsigned int SCR_WIDTH = 1920 ;
+const unsigned int SCR_HEIGHT = 1080 ;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;           
@@ -24,21 +24,26 @@ Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
 int main()
 {
-    GLFWwindow* window = initializeWindow("Slug2D", SCR_WIDTH, SCR_HEIGHT, true);
-    setWindowIcon(window, "Resources/ball.png");
+    GLFWwindow* window = initializeWindow("Slug2D", SCR_WIDTH, SCR_HEIGHT, false);
+    setWindowIcon(window, "Resources/Textures/ball.png");
 
     Shader ourShader("Shaders/vertex2d.shad", "Shaders/fragment2d.shad");
     Shader lineShader("Shaders/linevertex.shad", "Shaders/linefragment.shad");
     Shader screenShader("Shaders/screenvertex.shad", "Shaders/screenfragment.shad");
 
-    std::vector<unsigned int> walkFrames = { loadTexture("Resources/walk/1.png"), loadTexture("Resources/walk/2.png"), loadTexture("Resources/walk/3.png"), loadTexture("Resources/walk/4.png"), loadTexture("Resources/walk/5.png"), loadTexture("Resources/walk/6.png"), loadTexture("Resources/walk/7.png"), loadTexture("Resources/walk/8.png"), loadTexture("Resources/walk/9.png"), loadTexture("Resources/walk/10.png"), loadTexture("Resources/walk/11.png"), loadTexture("Resources/walk/12.png"), loadTexture("Resources/walk/13.png") };
+    std::vector<unsigned int> walkFrames = { loadTexture("Resources/Textures/walk/1.png"), loadTexture("Resources/Textures/walk/2.png"), loadTexture("Resources/Textures/walk/3.png"), loadTexture("Resources/Textures/walk/4.png"), loadTexture("Resources/Textures/walk/5.png"), loadTexture("Resources/Textures/walk/6.png"), loadTexture("Resources/Textures/walk/7.png"), loadTexture("Resources/Textures/walk/8.png"), loadTexture("Resources/Textures/walk/9.png"), loadTexture("Resources/Textures/walk/10.png"), loadTexture("Resources/Textures/walk/11.png"), loadTexture("Resources/Textures/walk/12.png"), loadTexture("Resources/Textures/walk/13.png") };
     Animation walkAnimation(walkFrames, 0.05f);
 
     Renderer ourRenderer;
-    unsigned int texture = loadTexture("Resources/Slugarius.png");
-    unsigned int transparentTexture = loadTexture("Resources/transparent.png");
-    unsigned int skyboxTexture = loadTexture("Resources/background.png");
-    unsigned int smokeTexture = loadTexture("Resources/smoke.png");
+    ourRenderer.SetGlobalLight(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    Light light(glm::vec3(0.2f, 0.5f, 0.0f), 0.0001f, 4.5f, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), 20.0f, true);
+    ourRenderer.AddLight(light);
+
+    unsigned int texture = loadTexture("Resources/Textures/Slugarius.png");
+    unsigned int transparentTexture = loadTexture("Resources/Textures/transparent.png");
+    unsigned int skyboxTexture = loadTexture("Resources/Textures/background.png");
+    unsigned int smokeTexture = loadTexture("Resources/Textures/smoke.png");
+    unsigned int redTexture = loadTexture("Resources/Textures/redlight.png");
 
     b2World world(b2Vec2(0.0f, -0.5f));
 
@@ -51,6 +56,8 @@ int main()
     Object bodyThree(body3, texture, glm::vec2(0.5f, 0.5f));
     Object bodyFour(NULL, transparentTexture, glm::vec2(1.5f, 1.5f), glm::vec3(0.2f, 0.5f, -2.5f), 0.25f);
     Object skybox(NULL, skyboxTexture, glm::vec2(100.0f, 50.0f), glm::vec3(0.0f, 10.0f, -50.0f), 0.0f);
+    Object redLight(NULL, redTexture, glm::vec2(0.2f, 0.2f), glm::vec3(0.6f, 0.5f, 0.0f));
+    bodyOne.receivesLight = false;
 
     bodyOne.AddAnimation("walk", walkAnimation);
     bodyOne.SetCurrentAnimation("walk");
@@ -60,11 +67,13 @@ int main()
     bodies.push_back(body3);
 
     ParticleSystem smokeParticles(glm::vec2(0.2f, 0.5f), 0.0f, 0.1f, smokeTexture, glm::vec2(2.2f, 2.2f), 0.01f, -0.01f, -0.1f, -5.0f, 0.1f, 0.8f, false, 1000.0f, 100.0f, false, 0.5f);
-    ParticleSystem smokeParticles2(glm::vec2(0.2f, 0.5f), 0.0f, 0.1f, smokeTexture, glm::vec2(0.1f, 0.02f), 0.1f, -0.01f, 0.2f, -0.1f, 2.0f, 1.5f, false, 1000.0f, 10.0f, false, 0.5f);
+    ParticleSystem smokeParticles2(glm::vec2(0.2f, 0.5f), 0.0f, 0.1f, smokeTexture, glm::vec2(0.3f, 0.02f), 0.1f, -0.01f, 0.2f, -0.1f, 2.0f, 1.5f, false, 1000.0f, 10.0f, false, 0.5f);
+
+    ourRenderer.AddShadowCaster(bodyThree);
 
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    ImFont* mainfont = io.Fonts->AddFontFromFileTTF("Resources/static/newfont.ttf", 18.5f);
+    ImFont* mainfont = io.Fonts->AddFontFromFileTTF("Resources/Fonts/newfont.ttf", 18.5f);
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
@@ -98,10 +107,15 @@ int main()
             (float)SCR_WIDTH / (float)SCR_HEIGHT,
             0.1f, 100.0f);
 
+        glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 7.5f);
+
         bodyOne.Update(deltaTime);
 
         skybox.position.x = camera.Position.x;
         skybox.position.y = camera.Position.y;
+
+        Light lightBruh(glm::vec3(bodyOne.body->GetPosition().x, bodyOne.body->GetPosition().y, 0.0f), 0.1f, 8.5f, glm::vec4(1.0f, 0.0f, 0.0f, 0.0f), 20.0f, true);
+        ourRenderer.EditLight(0, lightBruh);
 
         if (DrawBackdrop)
         {
@@ -112,6 +126,7 @@ int main()
         ourRenderer.Render(ourShader, bodyOne, view, projection);
         ourRenderer.Render(ourShader, bodyTwo, view, projection);
         ourRenderer.Render(ourShader, bodyThree, view, projection);
+        ourRenderer.Render(ourShader, redLight, view, projection);
         ourRenderer.RenderParticles(ourShader, smokeParticles, view, projection);
         ourRenderer.RenderParticles(ourShader, smokeParticles2, view, projection);
 

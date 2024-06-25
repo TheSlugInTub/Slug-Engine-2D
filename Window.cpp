@@ -33,6 +33,7 @@ GLFWwindow* initializeWindow(const char* title, int width, int height, bool isFu
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_STENCIL_TEST);
 
     return window;
 }
